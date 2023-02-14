@@ -1,0 +1,369 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	C:\Users\ahmed\Desktop\Fin.asm
+	Object File:	C:\Users\ahmed\Desktop\Fin.hex
+	List File:	C:\Users\ahmed\Desktop\Fin.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		B      00A5	 CS EQU P2.5 		;Chip Select
+    2:		B      00A2	RDP EQU P2.2           	;Read signal
+    3:		B      00A3	WRP EQU P2.3           	;Write signal
+    4:		B      00A4	INTR EQU P2.4         	;INTR signal
+    5:				;LED_PORT EQU P1
+    6:		D      0090	ADC_PORT EQU P1       ;ADC data pins P3
+    7:		N      0030	ADC_VAL EQU 30H       ;ADC read value stored in address 30H
+    8:		N      0000	    ORG 00H
+    9:		B	 A6	    RS BIT P2.6
+   10:		B	 A7	    RW BIT P2.7
+   11:		B	 87	    E  BIT P0.7
+   12:	  0000	C2 A0		    CLR P2.0
+   13:	  0002	C2 A1		    CLR P2.1
+   14:	  0004	11 8D		ACALL LCD_INITIALIZATION
+   15:				;PRINTING A CHARACTER
+   16:						;MOV A, #'A'
+   17:						;ACALL DATAWRT
+   18:
+   19:	  0006			ROUTINE:
+   20:				    ;ACALL DELAY
+   21:	  0006	11 B6		    ACALL CONV
+   22:	  0008	11 C4		    ACALL READ            ;Read converted value
+   23:	  000A	11 D8		    ACALL REPEAT
+   24:	  000C	11 B6		    ACALL CONV
+   25:	  000E	11 C4		    ACALL READ
+   26:	  0010	E5 30		    MOV A,ADC_VAL
+   27:	  0012	75 F0 32	    MOV B,#50
+   28:	  0015	84		        DIV AB
+   29:	  0016	A8 F0		        MOV R0,B
+   30:	  0018	75 F0 1D	        MOV B ,#29
+   31:	  001B	A4		        MUL AB
+   32:	  001C	F9		        MOV R1,A
+   33:	  001D	E8		        MOV A,R0
+   34:	  001E	75 F0 03	        MOV B,#3
+   35:	  0021	A4		        MUL AB
+   36:	  0022	75 F0 05	        MOV B,#5
+   37:	  0025	84		        DIV AB
+   38:	  0026	29		        ADD A,R1
+   39:	  0027	24 01		        ADD A,#1       ; move the contents of register A to R6
+   40:	  0029	75 F0 64	        MOV B,#100
+   41:	  002C	84		        DIV AB
+   42:	  002D	60 04		        JZ BV
+   43:	  002F	24 30		        ADD A,#48
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0031	11 77		        ACALL DATAWRT
+   45:	  0033	E5 F0		   BV:  MOV A,B
+   46:	  0035	75 F0 0A	        MOV B,#10
+   47:	  0038	84		        DIV AB
+   48:	  0039	24 30		        ADD A,#48
+   49:	  003B	11 77		        ACALL DATAWRT
+   50:	  003D	74 00		        MOV A,#00H
+   51:	  003F	E5 F0		        MOV A,B
+   52:				       ; ACALL DATAWRT
+   53:	  0041	24 30		        ADD A,#48
+   54:				        ;ACALL DATAWRT
+   55:	  0043	11 77		        ACALL DATAWRT
+   56:	  0045	74 DF		        MOV A,#223
+   57:	  0047	74 00		        MOV A,#00H
+   58:	  0049	24 DF		        ADD A,#223
+   59:	  004B	11 77		        ACALL DATAWRT
+   60:	  004D	74 43		        MOV A,#67
+   61:	  004F	74 00		        MOV A,#00H
+   62:	  0051	24 43		        ADD A,#67
+   63:	  0053	11 77		        ACALL DATAWRT
+   64:				        ;X / 1.72 = X * 29/50
+   65:				    ;ADD A,#26H
+   66:
+   67:				    ;MOV LED_PORT,ADC_VAL  ;Move the value to Port 1 (LED Port)
+   68:				    ;SJMP ROUTINE          ;Do it again
+   69:
+   70:				                    ;Reading done
+   71:
+   72:
+   73:
+   74:				;DELAY SUBROUTINE
+   75:
+   76:
+   77:	  0055	75 A0 00	mov p2 ,#00h
+   78:	  0058			loo :
+   79:	  0058	74 00		MOV A,#00H
+   80:				         ;Set P2.1 as input
+   81:				     ;MOV A,P2
+   82:				     ;ANL A,#00000100b
+   83:
+   84:	  005A	20 A1 04	     JB P2.1,BUTTON_PRESSED
+   85:				    ;Button is pressed
+   86:
+   87:	  005D			BUTTON_NOT_PRESSED:
+   88:	  005D	C2 A0		       CLR P2.0
+   89:	  005F	80 F7		       JMP loo
+   90:	  0061			BUTTON_PRESSED:
+   91:				    ;Button is pressed, perform the necessary actions
+   92:	  0061	D2 A0		        SETB P2.0
+   93:	  0063	75 89 10		MOV TMOD, #00010000B ; TIMER 1 IS SET FOR TIMER MODE 1, Soft controlled by TR1.
+   94:	  0066	11 D8			ACALL REPEAT
+   95:
+   96:	  0068	80 EE		    JMP loo
+   97:				;COMMAND SUB-ROUTINE FOR LCD CONTROL
+   98:	  006A			COMMANDWRT:
+   99:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  006A	F5 B0		    MOV P3, A ;SEND DATA TO P1
+  101:	  006C	C2 A6			CLR RS	;RS=0 FOR COMMAND
+  102:	  006E	C2 A7			CLR RW	;R/W=0 FOR WRITE
+  103:	  0070	D2 87			SETB E	;E=1 FOR HIGH PULSE
+  104:	  0072	11 D3			ACALL DELAY ;SOME DELAY
+  105:	  0074	C2 87			CLR E	;E=0 FOR H-L PULSE
+  106:	  0076	22			RET
+  107:
+  108:				;SUBROUTINE FOR DATA LACTCHING TO LCD
+  109:	  0077			DATAWRT:
+  110:
+  111:	  0077	F5 B0			MOV P3, A
+  112:	  0079	D2 A6			SETB RS	;;RS=1 FOR DATA
+  113:	  007B	C2 A7			CLR RW
+  114:	  007D	D2 87			SETB E
+  115:	  007F	11 D3			ACALL DELAY
+  116:	  0081	C2 87			CLR E
+  117:	  0083	22			RET
+  118:
+  119:	  0084			DELAY1:
+  120:	  0084	78 0A		    	MOV R0, #10 ;DELAY. HIGHER VALUE FOR FASTER CPUS
+  121:	  0086	79 FF		Y:	MOV R1, #255
+  122:	  0088	D9 FE			DJNZ R1, $
+  123:	  008A	D8 FA			DJNZ R0, Y
+  124:	  008C	22		RET
+  125:	  008D			LCD_INITIALIZATION :
+  126:	  008D	74 38				MOV A, #38H	; INITIATE LCD
+  127:	  008F	11 6A				ACALL COMMANDWRT
+  128:	  0091	11 D3				ACALL DELAY
+  129:
+  130:	  0093	74 0F				MOV A, #0FH	; DISPLAY ON CURSOR ON
+  131:	  0095	11 6A				ACALL COMMANDWRT
+  132:	  0097	11 D3				ACALL DELAY
+  133:
+  134:	  0099	74 01				MOV A, #01H	; CLEAR LCD
+  135:	  009B	11 6A				ACALL COMMANDWRT
+  136:	  009D	11 D3				ACALL DELAY
+  137:	  009F	22				RET
+  138:	  00A0			FORCE_CURSOR_TO_2ND_LINE:
+  139:	  00A0	74 C0				MOV A, #0C0H
+  140:	  00A2	11 6A				ACALL COMMANDWRT
+  141:	  00A4	11 D3				ACALL DELAY
+  142:	  00A6	22				RET
+  143:	  00A7			PRINTING_A_STRING:
+  144:	  00A7	90 03 00			MOV DPTR, #STRINGDATA
+  145:	  00AA	E4		STRING:		CLR A
+  146:	  00AB	93				MOVC A, @A+DPTR
+  147:	  00AC	11 77				ACALL DATAWRT
+  148:	  00AE	11 D3				ACALL DELAY
+  149:	  00B0	A3				INC DPTR
+  150:	  00B1	60 02				JZ HLT
+  151:	  00B3	80 F5				SJMP STRING
+  152:	  00B5	22		HLT:		RET
+  153:
+  154:	  00B6			 CONV:                      ;Start of Conversion
+  155:	  00B6	C2 A5		    CLR CS             ;Make CS low
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:	  00B8	11 D3		    ACALL DELAY
+  157:	  00BA	C2 A3		    CLR WRP            ;Make WR Low
+  158:	  00BC	D2 A5		    SETB CS            ;Make CS High. Disable ADC to allow conversion
+  159:	  00BE	20 A4 FD	        JB INTR,$       ;Wait for INTR signal
+  160:	  00C1	D2 A4		    SETB INTR          ;Conversion done. Set INTR to get accept upcoming conversions
+  161:	  00C3	22		    RET
+  162:
+  163:	  00C4			READ:                         ;Read ADC value
+  164:	  00C4	C2 A5		    CLR CS
+  165:	  00C6	D2 A2		    SETB RDP
+  166:	  00C8	11 D3		    ACALL DELAY
+  167:	  00CA	C2 A2		    CLR RDP               ;Make RD Low
+  168:	  00CC	11 D3		    ACALL DELAY          ;Some delay to allow the stored values to be placed on the ADC port
+  169:	  00CE	E5 90		    MOV A,ADC_PORT        ;Read the converted value
+  170:	  00D0	F5 30		    MOV ADC_VAL,A         ;Store it in local variable
+  171:	  00D2	22		    RET
+  172:	  00D3	7C 0A		    DELAY: MOV R4, #10
+  173:	  00D5	DC FE		       DJNZ R4, $
+  174:	  00D7	22		       RET
+  175:	  00D8	7D AF		REPEAT: MOV R5, #0AFH
+  176:					;Timer Clk = 11.0592/12*1 = 0.9216 MHz (1 cycle = 1.085.... µs)
+  177:					;   50000 uS = (65536 - Count) * (1 / 0.9216). Count = 19456 => 4C00H
+  178:					;OR 50000 uS / (1 / 0.9216) uS = 19456 (65536 - 19456 = 19456 => 4C00H)
+  179:	  00DA	75 8D 04	LOOP: 	MOV TH1, #04H ; TIMER 1 HIGH BYTE IS LOADED
+  180:	  00DD	75 8B 00		MOV TL1, #00H ; TIMER 1 LOW BYTE IS LOADED
+  181:	  00E0	D2 8E			SETB TR1 ; START TIMER 1
+  182:
+  183:	  00E2	30 8F FD		JNB TF1, $ ; LOOP AROUND UNTIL TIMER 1 OVERFLOWS
+  184:	  00E5	C2 8E			CLR TR1 ; STOP TIMER 1
+  185:	  00E7	C2 8F			CLR TF1 ; CLEAR OVERFLOW FLAG
+  186:
+  187:	  00E9	DD EF			DJNZ R5, LOOP
+  188:
+  189:					;CJNE A, #0AH, REPEAT
+  190:	  00EB	22		RET
+  191:
+  192:				            ;Loop back to the beginning
+  193:		N      0300	            ORG 300H
+  194:	  0300	48 45 4C 4C	STRINGDATA:	DB	"HELLO" ,0 ;STRING AND NULL
+	  0304	4F 00
+  195:
+  196:				END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+ADC_PORT			  NUMBER    0090	   6
+ADC_VAL				  NUMBER    0030	   7
+B				  DATA	      F0
+BUTTON_NOT_PRESSED		  CODE	    005D	  87
+BUTTON_PRESSED			  CODE	    0061	  90
+BV				  CODE	    0033	  45
+COMMANDWRT			  CODE	    006A	  98
+CONV				  CODE	    00B6	 154
+CS				  NUMBER    00A5	   1
+CY				  BIT	      D7
+DATAWRT				  CODE	    0077	 109
+DELAY				  CODE	    00D3	 172
+DELAY1				  CODE	    0084	 119
+DPH				  DATA	      83
+DPL				  DATA	      82
+E				  BIT	      87	  11
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+FORCE_CURSOR_TO_2ND_LINE	  CODE	    00A0	 138
+HLT				  CODE	    00B5	 152
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+INTR				  NUMBER    00A4	   4
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LCD_INITIALIZATION		  CODE	    008D	 125
+LOO				  CODE	    0058	  78
+LOOP				  CODE	    00DA	 179
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+PRINTING_A_STRING		  CODE	    00A7	 143
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+RDP				  NUMBER    00A2	   2
+READ				  CODE	    00C4	 163
+REN				  BIT	      9C
+REPEAT				  CODE	    00D8	 175
+RESET				  CODE	    0000
+RI				  BIT	      98
+ROUTINE				  CODE	    0006	  19
+RS				  BIT	      A6	   9
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RW				  BIT	      A7	  10
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+STRING				  CODE	    00AA	 145
+STRINGDATA			  CODE	    0300	 194
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6
+WRP				  NUMBER    00A3	   3
+Y				  CODE	    0086	 121
